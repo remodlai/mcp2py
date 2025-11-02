@@ -709,6 +709,33 @@ export MCP_TOKEN="your-token-here"
 server = load("https://api.example.com/mcp")
 ```
 
+### Security Considerations
+
+**Client-Side (mcp2py handles automatically):**
+- ✅ Secure token storage - OAuth tokens cached in `~/.fastmcp/oauth-mcp-client-cache/`
+- ✅ PKCE support for OAuth flows (Proof Key for Code Exchange)
+- ✅ Automatic token refresh before expiration
+- ✅ Environment variable support (`MCP_TOKEN`)
+
+**Server-Side (your responsibility when connecting):**
+- Use HTTPS URLs for production servers (not HTTP)
+- Ensure the MCP servers you connect to implement proper authentication
+- Rotate tokens/credentials regularly
+- Never commit tokens to version control
+
+**Best Practices:**
+```python
+# Good: Use environment variables
+import os
+server = load("https://api.example.com/mcp", auth=os.getenv("MCP_TOKEN"))
+
+# Good: HTTPS for production
+server = load("https://api.example.com/mcp", auth="oauth")
+
+# Avoid: Hardcoded tokens in code
+# server = load("https://api.example.com/mcp", auth="sk-secret-123")  # Don't do this!
+```
+
 ## Advanced Features
 
 ### Stub Generation

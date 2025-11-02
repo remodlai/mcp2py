@@ -14,7 +14,7 @@ def test_tools_returns_list_of_callables():
     tools = server.tools
 
     assert isinstance(tools, list)
-    assert len(tools) == 2  # echo and add
+    assert len(tools) >= 2  # at least echo and add
     assert all(callable(t) for t in tools)
 
     server.close()

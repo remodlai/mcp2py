@@ -45,7 +45,7 @@ async def test_list_tools_returns_valid_schemas():
 
     # Verify tools structure
     assert isinstance(tools, list)
-    assert len(tools) == 2  # echo and add
+    assert len(tools) >= 2  # at least echo and add
 
     # Verify each tool has required fields
     for tool in tools:

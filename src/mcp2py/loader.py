@@ -5,11 +5,15 @@ creating Python interfaces to them.
 """
 
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, Literal
 
+import httpx
+
+from mcp2py.auth import BearerAuth, OAuth, create_auth_handler
 from mcp2py.client import MCPClient
 from mcp2py.elicitation import DefaultElicitationHandler, ElicitationHandler
 from mcp2py.event_loop import AsyncRunner
+from mcp2py.http_client import HTTPMCPClient
 from mcp2py.registry import get_command
 from mcp2py.roots import normalize_roots
 from mcp2py.sampling import DefaultSamplingHandler, SamplingHandler
@@ -21,6 +25,10 @@ def load(
     command: str | list[str],
     *,
     roots: str | list[str] | Path | list[Path] | None = None,
+    headers: dict[str, str] | None = None,
+    auth: httpx.Auth | Literal["oauth"] | str | Callable[[], str] | None = None,
+    auto_auth: bool = True,
+    timeout: float = 30.0,
     allow_sampling: bool = True,
     on_sampling: SamplingHandler | None = None,
     allow_elicitation: bool = True,
@@ -29,13 +37,16 @@ def load(
 ) -> MCPServer:
     """Load MCP server and return Python interface.
 
-    Launches the server subprocess, connects via stdio, performs MCP
-    initialization handshake, and returns a synchronous Python interface
-    with tools as methods.
+    Supports both stdio (local subprocess) and HTTP/SSE (remote server) transports.
+    Automatically detects transport type based on command format.
 
     Args:
-        command: Command to launch server, or registered server name
+        command: Command to launch server, URL, or registered server name
         roots: Optional directory roots for the server to focus on
+        headers: HTTP headers for remote servers (e.g., Authorization)
+        auth: Authentication handler (bearer token, "oauth", callable, or httpx.Auth)
+        auto_auth: Enable automatic OAuth flow (default: True)
+        timeout: HTTP request timeout in seconds (default: 30.0)
         allow_sampling: Allow server to request LLM completions (default: True)
         on_sampling: Custom sampling handler (default: auto-detect from env)
         allow_elicitation: Allow server to request user input (default: True)
@@ -49,11 +60,25 @@ def load(
         RuntimeError: If connection or initialization fails
         ValueError: If command is invalid
 
-    Example:
+    Example (stdio - local server):
         >>> server = load("python tests/test_server.py")
         >>> result = server.echo(message="Hello!")
         >>> "Hello!" in result
         True
+        >>> server.close()
+
+    Example (HTTP - remote server with bearer token):
+        >>> server = load(
+        ...     "https://api.example.com/mcp",
+        ...     headers={"Authorization": "Bearer sk-1234"}
+        ... )
+        >>> result = server.search(query="test")
+        >>> server.close()
+
+    Example (HTTP - remote server with OAuth):
+        >>> server = load("https://api.example.com/mcp", auth="oauth")
+        >>> # Browser opens automatically for login
+        >>> result = server.search(query="test")
         >>> server.close()
 
     Example with registered server:
@@ -82,8 +107,28 @@ def load(
         True
         >>> server.close()
     """
+    # Detect transport type
+    is_http = isinstance(command, str) and command.startswith(("http://", "https://"))
+
+    if is_http:
+        # HTTP/SSE transport for remote servers
+        url = command
+        auth_handler, headers = create_auth_handler(auth, headers, url, auto_auth)
+
+        return _load_http_server(
+            url=url,
+            headers=headers,
+            auth=auth_handler,
+            timeout=timeout,
+            allow_sampling=allow_sampling,
+            on_sampling=on_sampling,
+            allow_elicitation=allow_elicitation,
+            on_elicitation=on_elicitation,
+        )
+
+    # Stdio transport for local servers
     # Check if command is a registered server name
-    if isinstance(command, str) and not command.startswith(("python", "npx", "node", "/")):
+    if isinstance(command, str) and not command.startswith(("python", "npx", "node", "uv", "/")):
         registered_cmd = get_command(command)
         if registered_cmd:
             command = registered_cmd
@@ -268,6 +313,117 @@ def load(
         server.generate_stubs()
     except Exception:
         # Silently ignore stub generation failures
+        pass
+
+    return server
+
+
+def _load_http_server(
+    url: str,
+    headers: dict[str, str] | None = None,
+    auth: httpx.Auth | None = None,
+    timeout: float = 30.0,
+    allow_sampling: bool = True,
+    on_sampling: SamplingHandler | None = None,
+    allow_elicitation: bool = True,
+    on_elicitation: ElicitationHandler | None = None,
+) -> MCPServer:
+    """Load HTTP/SSE MCP server (internal helper).
+
+    Args:
+        url: HTTP/HTTPS URL of MCP server
+        headers: HTTP headers
+        auth: Authentication handler
+        timeout: Request timeout
+        allow_sampling: Allow LLM sampling
+        on_sampling: Custom sampling handler
+        allow_elicitation: Allow user input
+        on_elicitation: Custom elicitation handler
+
+    Returns:
+        MCPServer object
+
+    Raises:
+        RuntimeError: If connection fails
+    """
+    # HTTP client doesn't support sampling/elicitation callbacks yet
+    # These would need to be handled differently in SSE transport
+    sampling_callback = None
+    elicitation_callback = None
+
+    # Create async runner (background event loop in thread)
+    runner = AsyncRunner()
+
+    # Create HTTP MCP client
+    client = HTTPMCPClient(
+        url=url,
+        headers=headers,
+        auth=auth,
+        timeout=timeout,
+        sse_read_timeout=300.0,  # 5 minutes for SSE
+        sampling_callback=sampling_callback,
+        elicitation_callback=elicitation_callback,
+    )
+
+    # Connect and initialize synchronously via runner
+    try:
+        # Connect to HTTP server
+        runner.run(client.connect())
+
+        # MCP initialization handshake
+        runner.run(
+            client.initialize(
+                client_info={
+                    "name": "mcp2py",
+                    "version": "0.1.0",
+                }
+            )
+        )
+
+        # List available tools (required)
+        tools = runner.run(client.list_tools())
+
+        # Try to list resources (optional capability)
+        try:
+            resources = runner.run(client.list_resources())
+        except Exception:
+            resources = []
+
+        # Try to list prompts (optional capability)
+        try:
+            prompts = runner.run(client.list_prompts())
+        except Exception:
+            prompts = []
+
+    except Exception as e:
+        # Cleanup on failure
+        try:
+            runner.close()
+        except Exception:
+            pass
+
+        raise RuntimeError(f"Failed to connect to HTTP MCP server: {e}") from e
+
+    # Create dynamically typed server class for IDE autocomplete
+    try:
+        from mcp2py.stubs import create_typed_server_class
+
+        # Create typed subclass with method stubs
+        TypedServerClass = create_typed_server_class(
+            MCPServer, tools, resources, prompts
+        )
+
+        # Instantiate the typed class
+        server = TypedServerClass(client, runner, tools, resources, prompts, command=url)
+
+    except Exception:
+        # Fallback to regular MCPServer if typing fails
+        server = MCPServer(client, runner, tools, resources, prompts, command=url)
+
+    # Auto-generate stub file to cache (best effort)
+    try:
+        server.generate_stubs()
+    except Exception:
         pass
 
     return server

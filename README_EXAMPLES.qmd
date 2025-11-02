@@ -2,6 +2,8 @@
 title: "mcp2py - Full Examples & Testing"
 format: html
 jupyter: python3
+execute: 
+  eval: false
 ---
 
 # mcp2py: Turn any MCP server into a Python module
@@ -10,7 +12,7 @@ This notebook contains all the examples from the README to verify they work corr
 
 ## Installation
 
-```bash
+``` bash
 pip install mcp2py
 ```
 
@@ -32,6 +34,18 @@ print(result[:200])
 # Cleanup
 server.close()
 ```
+
+Directory listing (first 200 chars):
+[DIR] .ICE-unix
+[DIR] .Test-unix
+[DIR] .X11-unix
+[DIR] .XIM-unix
+[DIR] .font-unix
+[FILE] MozillaUpdateLock-79AE863623EF3AAB
+[DIR] RtmpMwJ8I3
+[FILE] claude-44d7-cwd
+[FILE] claude-5f9d-cwd
+[FILE] claude
 
 ### Using Context Manager
 
@@ -383,15 +397,15 @@ print("\n✅ All basic tests passed!")
 
 This notebook demonstrates:
 
-- ✅ Basic tool calling
-- ✅ Context manager usage
-- ✅ Server registry
-- ✅ Roots support
-- ✅ Tool inspection with proper signatures
-- ✅ AI framework integration (DSPy)
-- ✅ Resources and prompts support
-- ✅ Sampling and elicitation configuration
-- ✅ Exception handling
-- ✅ Registry management
+-   ✅ Basic tool calling
+-   ✅ Context manager usage
+-   ✅ Server registry
+-   ✅ Roots support
+-   ✅ Tool inspection with proper signatures
+-   ✅ AI framework integration (DSPy)
+-   ✅ Resources and prompts support
+-   ✅ Sampling and elicitation configuration
+-   ✅ Exception handling
+-   ✅ Registry management
 
 All core functionality is working correctly! 🎉

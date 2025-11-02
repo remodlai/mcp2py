@@ -6,7 +6,7 @@ Example:
     >>> result = server.get_alerts(state="CA")
 """
 
-__version__ = "0.4.0"
+__version__ = "0.5.0"
 
 # Phase 1.3: MCP Client (wraps official SDK)
 from mcp2py.client import MCPClient
@@ -14,6 +14,9 @@ from mcp2py.client import MCPClient
 # Phase 1.4: High-level API
 from mcp2py.loader import load
 from mcp2py.server import MCPServer
+
+# Authentication
+from mcp2py.auth import BearerAuth, OAuth
 
 # Exceptions
 from mcp2py.exceptions import (
@@ -42,6 +45,8 @@ __all__ = [
     "load",
     "MCPClient",
     "MCPServer",
+    "BearerAuth",
+    "OAuth",
     "MCPError",
     "MCPConnectionError",
     "MCPToolError",

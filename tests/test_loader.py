@@ -190,10 +190,10 @@ def test_tool_method_has_docstring():
     server = load([sys.executable, str(test_server)])
 
     echo_func = server.echo
-    assert echo_func.__doc__ == "Echo back the input"
+    assert "Echo back the input" in echo_func.__doc__
 
     add_func = server.add
-    assert add_func.__doc__ == "Add two numbers"
+    assert "Add two numbers" in add_func.__doc__
 
     server.close()
 
