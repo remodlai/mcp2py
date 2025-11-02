@@ -6,15 +6,49 @@ toc-title: Table of contents
 
 # mcp2py: Turn any MCP server into a python module
 
-MCP (Model Context Protocol) is an emerging standard for AI tools and resources. The standard is compatible with normal REST API servers, but adds extra metadata to describe tools, resources, and prompts in a machine-readable way. This provides us with a great opportunity to create Python modules that completely and automatically map to these MCP servers. The biggest advantage of this approach is that we can use any MCP server as if it were a native Python library, with zero configuration. This can be quite a big deal as creating Python software development kits that map to REST APIs is extremely common and was quite a manual process. Now, if the organization hosting the REST API also provides an MCP interface, we can automatically generate a Python SDK for it with zero effort! Don't worry if this is not all clear to you. You can still leverage the power of mcp2py without knowing all the details of MCP. All you need to know is: if you want to programmatically interact with a website, it is likely that they have an API and as time goes on it is very likely that they have an MCP interface for that API. If they do, you don't have to learn a whole set of web programming skills, you can just use mcp2py to load the MCP server and start calling functions right away as if it were a native Python library!
+MCP (Model Context Protocol) is an emerging standard for AI tools and
+resources. The standard is compatible with normal REST API servers, but
+adds extra metadata to describe tools, resources, and prompts in a
+machine-readable way. This provides us with a great opportunity to
+create Python modules that completely and automatically map to these MCP
+servers. The biggest advantage of this approach is that we can use any
+MCP server as if it were a native Python library, with zero
+configuration. This can be quite a big deal as creating Python software
+development kits that map to REST APIs is extremely common and was quite
+a manual process. Now, if the organization hosting the REST API also
+provides an MCP interface, we can automatically generate a Python SDK
+for it with zero effort! Don't worry if this is not all clear to you.
+You can still leverage the power of mcp2py without knowing all the
+details of MCP. All you need to know is: if you want to programmatically
+interact with a website, it is likely that they have an API and as time
+goes on it is very likely that they have an MCP interface for that API.
+If they do, you don't have to learn a whole set of web programming
+skills, you can just use mcp2py to load the MCP server and start calling
+functions right away as if it were a native Python library!
 
-Another cool thing to note is that servers don't have to be running remotely. You can (and have) a lot of servers running on your own personal computer right now. This is useful to have different programs, possibly in different programming languages, talking to each other. As apps that you install will more and more open up a small local server on your machine to let LLMs interact with them, you will also be able to leverage mcp2py to interact with these local servers. That could look like Slack opening a server that lets you query your messages. If so, you could then use mcp2py and have a Python module (a library in essence) that lets you query your Slack messages directly from Python. Super powerful!
+Another cool thing to note is that servers don't have to be running
+remotely. You can (and have) a lot of servers running on your own
+personal computer right now. This is useful to have different programs,
+possibly in different programming languages, talking to each other. As
+apps that you install will more and more open up a small local server on
+your machine to let LLMs interact with them, you will also be able to
+leverage mcp2py to interact with these local servers. That could look
+like Slack opening a server that lets you query your messages. If so,
+you could then use mcp2py and have a Python module (a library in
+essence) that lets you query your Slack messages directly from Python.
+Super powerful!
 
 ## Overview
 
-Here is a very simple example of using mcp2py to interact with your local filesystem. That is not very useful as you could just use the built-in Python libraries to do that, but it serves as a very simple example to illustrate how mcp2py works. In this snippet of code we use load to both start the MCP server (which is a Node.js server in this case) and connect to it. Once connected we can call the list_directory tool as if it were a native Python function:
+Here is a very simple example of using mcp2py to interact with your
+local filesystem. That is not very useful as you could just use the
+built-in Python libraries to do that, but it serves as a very simple
+example to illustrate how mcp2py works. In this snippet of code we use
+load to both start the MCP server (which is a Node.js server in this
+case) and connect to it. Once connected we can call the list_directory
+tool as if it were a native Python function:
 
-::: {.cell execution_count="1"}
+::: cell
 ``` {.python .cell-code}
 from mcp2py import load
 fstools = load("npx -y @modelcontextprotocol/server-filesystem /home")
@@ -22,24 +56,25 @@ fstools.list_directory("/home")
 ```
 :::
 
-```         
-[DIR] maxime
-```
+    [DIR] maxime
 
 This is similar to using the os library in Python:
 
-::: {.cell execution_count="2"}
+::: cell
 ``` {.python .cell-code}
 import os
 os.listdir("/home")
 ```
 :::
 
-```         
-['maxime']
-```
+    ['maxime']
 
-The main difference is that instead of going directly from Python to the system, we send commands to a local Node (JavaScript) server and that server has some 'security' features. For example, we are not allowed to search outside of /home because that is what we have set as the root. Those features are very useful when you want to expose your file system to an LLM.
+The main difference is that instead of going directly from Python to the
+system, we send commands to a local Node (JavaScript) server and that
+server has some 'security' features. For example, we are not allowed to
+search outside of /home because that is what we have set as the root.
+Those features are very useful when you want to expose your file system
+to an LLM.
 
 ------------------------------------------------------------------------
 
@@ -53,7 +88,7 @@ pip install mcp2py
 
 **2. Use it**
 
-::: {.cell execution_count="3"}
+::: cell
 ``` {.python .cell-code}
 from mcp2py import load
 
@@ -69,11 +104,13 @@ content
 
 **3. That's it!**
 
-The server runs as a subprocess, tools are {python} methods, everything just works. d
+The server runs as a subprocess, tools are {python} methods, everything
+just works. d
 
 ## What is MCP?
 
-MCP servers expose **tools**, **resources**, and **prompts** via a protocol. mcp2py turns them into {python}:
+MCP servers expose **tools**, **resources**, and **prompts** via a
+protocol. mcp2py turns them into {python}:
 
 -   🔧 **Tools** → {python} functions
 -   📦 **Resources** → {python} constants/attributes
@@ -83,19 +120,32 @@ MCP servers expose **tools**, **resources**, and **prompts** via a protocol. mcp
 
 **It Just Works™ - But You Can Customize Everything**
 
-mcp2py is designed for **researchers, data analysts, and {python} beginners** who want to try MCP servers without complexity. At the same time, it provides **full control** for developers building production applications.
+mcp2py is designed for **researchers, data analysts, and {python}
+beginners** who want to try MCP servers without complexity. At the same
+time, it provides **full control** for developers building production
+applications.
 
-**Zero configuration by default:** - OAuth login? Browser opens automatically - Need user input? Terminal prompts appear - Server needs an LLM? We handle it - Everything "just works" out of the box
+**Zero configuration by default:** - OAuth login? Browser opens
+automatically - Need user input? Terminal prompts appear - Server needs
+an LLM? We handle it - Everything "just works" out of the box
 
-**No ceiling for advanced users:** - Override any default behavior - Customize auth flows - Build production apps - Full control when you need it
+**No ceiling for advanced users:** - Override any default behavior -
+Customize auth flows - Build production apps - Full control when you
+need it
 
-**Your {python} REPL/code becomes an MCP client.** The server is a separate process (Node.js, {python}, whatever) that mcp2py communicates with via JSON-RPC. Your {python} code can: - Call tools (server functions) as if they're local {python} functions - Access resources (server data) as {python} attributes - Handle server requests (sampling, elicitation) automatically or via custom callbacks - Work seamlessly with any AI SDK (Anthropic, OpenAI, DSPy, etc.)
+**Your {python} REPL/code becomes an MCP client.** The server is a
+separate process (Node.js, {python}, whatever) that mcp2py communicates
+with via JSON-RPC. Your {python} code can: - Call tools (server
+functions) as if they're local {python} functions - Access resources
+(server data) as {python} attributes - Handle server requests (sampling,
+elicitation) automatically or via custom callbacks - Work seamlessly
+with any AI SDK (Anthropic, OpenAI, DSPy, etc.)
 
 ## Getting Started
 
 ### For Beginners & Researchers: It Just Works
 
-::: {.cell execution_count="4"}
+::: cell
 ``` {.python .cell-code}
 from mcp2py import load
 
@@ -132,7 +182,7 @@ print(result)
 
 ### Basic Usage
 
-::: {.cell execution_count="5"}
+::: cell
 ``` {.python .cell-code}
 from mcp2py import load
 
@@ -164,9 +214,10 @@ prompt = weather.create_weather_report(location="NYC", style="casual")
 
 ### Use with AI Frameworks (DSPy, Claudette, etc.)
 
-**The `.tools` attribute gives you a list of callable {python} functions**:
+**The `.tools` attribute gives you a list of callable {python}
+functions**:
 
-::: {.cell execution_count="6"}
+::: cell
 ``` {.python .cell-code}
 from mcp2py import load
 
@@ -187,9 +238,10 @@ result = tools[0](path="/tmp/test.txt")
 
 ### Working with AI Frameworks
 
-The `.tools` attribute gives you callable functions ready for frameworks like DSPy and Claudette:
+The `.tools` attribute gives you callable functions ready for frameworks
+like DSPy and Claudette:
 
-::: {.cell execution_count="7"}
+::: cell
 ``` {.python .cell-code}
 from mcp2py import load
 import dspy
@@ -212,7 +264,7 @@ print(result)
 ```
 :::
 
-::: {.cell execution_count="8"}
+::: cell
 ``` {.python .cell-code}
 # Also works with Claudette
 from mcp2py import load
@@ -229,13 +281,16 @@ print(response)
 ```
 :::
 
-**Note:** For SDKs that have native MCP support (Anthropic, OpenAI, Google Gemini), use their built-in MCP integration directly. The `.tools` attribute is for frameworks like DSPy and Claudette that expect {python} callables.
+**Note:** For SDKs that have native MCP support (Anthropic, OpenAI,
+Google Gemini), use their built-in MCP integration directly. The
+`.tools` attribute is for frameworks like DSPy and Claudette that expect
+{python} callables.
 
 ### Type Safety & IDE Support
 
 **Auto-generated stubs for perfect autocomplete:**
 
-::: {.cell execution_count="9"}
+::: cell
 ``` {.python .cell-code}
 from mcp2py import load
 
@@ -252,7 +307,7 @@ server.search_files(
 
 **Manual stub generation:**
 
-::: {.cell execution_count="10"}
+::: cell
 ``` {.python .cell-code}
 # Generate stub to specific location for your project
 server = load("npx weather-server")
@@ -263,13 +318,19 @@ server.generate_stubs("./stubs/weather.pyi")
 ```
 :::
 
-**How it works:** - `load()` returns a **dynamically typed class** with all methods pre-defined - Your IDE sees proper type hints immediately - **no configuration needed!** - Type hints include parameter names, types, defaults, and return types - Works in VS Code, PyCharm, Jupyter notebooks, and any {python} IDE - Also generates `.pyi` stub files to `~/.cache/mcp2py/stubs/` for reference
+**How it works:** - `load()` returns a **dynamically typed class** with
+all methods pre-defined - Your IDE sees proper type hints immediately -
+**no configuration needed!** - Type hints include parameter names,
+types, defaults, and return types - Works in VS Code, PyCharm, Jupyter
+notebooks, and any {python} IDE - Also generates `.pyi` stub files to
+`~/.cache/mcp2py/stubs/` for reference
 
 **Zero configuration required** - autocomplete just works! ✨
 
 ## MCP Client Features
 
-When your {python} code acts as an MCP client, servers may request these capabilities:
+When your {python} code acts as an MCP client, servers may request these
+capabilities:
 
 ### **Sampling**
 
@@ -277,7 +338,7 @@ When a server needs LLM completions, mcp2py handles it automatically.
 
 **Default: Works Out of the Box**
 
-::: {.cell execution_count="11"}
+::: cell
 ``` {.python .cell-code}
 from mcp2py import load
 
@@ -296,7 +357,7 @@ result = server.book_flight(destination="Tokyo")
 
 **Configure your preferred LLM:**
 
-::: {.cell execution_count="12"}
+::: cell
 ``` {.python .cell-code}
 # Set via environment (recommended)
 import os
@@ -319,7 +380,7 @@ server = load("npx travel-server")
 
 **Advanced: Custom Sampling Handler**
 
-::: {.cell execution_count="13"}
+::: cell
 ``` {.python .cell-code}
 from mcp2py import load
 
@@ -343,7 +404,7 @@ server = load(
 
 **Disable sampling (for security/cost control):**
 
-::: {.cell execution_count="14"}
+::: cell
 ``` {.python .cell-code}
 server = load(
     "npx travel-server",
@@ -358,7 +419,7 @@ When a server needs user input, mcp2py prompts automatically.
 
 **Default: Terminal Prompts**
 
-::: {.cell execution_count="15"}
+::: cell
 ``` {.python .cell-code}
 from mcp2py import load
 
@@ -380,29 +441,27 @@ result = server.book_flight(destination="Paris")
 
 **What you see:**
 
-```         
-Calling book_flight...
+    Calling book_flight...
 
-┌─────────────────────────────────────────┐
-│ 🔔 Server needs your input              │
-├─────────────────────────────────────────┤
-│ Confirm booking for $500?               │
-│                                         │
-│ confirm_booking (boolean): y/n          │
-│ seat_preference (window/aisle/middle):  │
-│ meal_preference (optional):             │
-└─────────────────────────────────────────┘
+    ┌─────────────────────────────────────────┐
+    │ 🔔 Server needs your input              │
+    ├─────────────────────────────────────────┤
+    │ Confirm booking for $500?               │
+    │                                         │
+    │ confirm_booking (boolean): y/n          │
+    │ seat_preference (window/aisle/middle):  │
+    │ meal_preference (optional):             │
+    └─────────────────────────────────────────┘
 
-> y
-> window
-> vegetarian
+    > y
+    > window
+    > vegetarian
 
-Booking confirmed!
-```
+    Booking confirmed!
 
 **Advanced: Custom Elicitation Handler**
 
-::: {.cell execution_count="16"}
+::: cell
 ``` {.python .cell-code}
 from mcp2py import load
 
@@ -421,7 +480,7 @@ server = load(
 
 **Disable elicitation (for automated scripts):**
 
-::: {.cell execution_count="17"}
+::: cell
 ``` {.python .cell-code}
 server = load(
     "npx travel-server",
@@ -443,7 +502,7 @@ server = load(
 
 Servers can ask which directories to focus on. Optional, simple:
 
-::: {.cell execution_count="18"}
+::: cell
 ``` {.python .cell-code}
 # Single directory
 server = load("npx filesystem-server", roots="/home/user/projects")
@@ -470,9 +529,10 @@ MCP tools map to {python} functions with full support for:
 -   **Docstrings**: Built from tool `description`
 -   **Return types**: Typed as `dict[str, Any]` (MCP tools return JSON)
 
-**Naming convention**: Snake_case (MCP `getWeather` → {python} `get_weather`)
+**Naming convention**: Snake_case (MCP `getWeather` → {python}
+`get_weather`)
 
-::: {.cell execution_count="19"}
+::: cell
 ``` {.python .cell-code}
 # MCP Tool Definition:
 # {
@@ -504,10 +564,12 @@ def search_files(pattern: str, max_results: int = 100) -> dict[str, Any]:
 
 Resources map differently based on their nature:
 
--   **Static resources** (like documentation, schemas): Module-level constants (UPPER_CASE)
--   **Dynamic resources** (may change): Properties with getters (lowercase)
+-   **Static resources** (like documentation, schemas): Module-level
+    constants (UPPER_CASE)
+-   **Dynamic resources** (may change): Properties with getters
+    (lowercase)
 
-::: {.cell execution_count="20"}
+::: cell
 ``` {.python .cell-code}
 # Static resource (cached)
 API_DOCS: str = server._get_resource("api://docs")
@@ -520,13 +582,14 @@ def current_status() -> dict[str, Any]:
 ```
 :::
 
-**Naming convention**: - Static: `UPPER_SNAKE_CASE` - Dynamic: `lower_snake_case` properties
+**Naming convention**: - Static: `UPPER_SNAKE_CASE` - Dynamic:
+`lower_snake_case` properties
 
 ### 3. **Prompts → Template Functions**
 
 Prompts become functions that return formatted strings:
 
-::: {.cell execution_count="21"}
+::: cell
 ``` {.python .cell-code}
 # MCP Prompt:
 # {
@@ -557,7 +620,7 @@ def review_code(code: str, focus: str | None = None) -> str:
 
 {python}ic exceptions for common failures:
 
-::: {.cell execution_count="22"}
+::: cell
 ``` {.python .cell-code}
 from mcp2py.exceptions import (
     MCPConnectionError,    # Can't connect to server
@@ -579,7 +642,7 @@ except MCPToolError as e:
 
 Use `aload()` for async MCP servers:
 
-::: {.cell execution_count="23"}
+::: cell
 ``` {.python .cell-code}
 from mcp2py import aload
 
@@ -595,7 +658,7 @@ status = await server.get_current_status()
 
 Automatic cleanup when using `with`:
 
-::: {.cell execution_count="24"}
+::: cell
 ``` {.python .cell-code}
 from mcp2py import load
 
@@ -616,7 +679,7 @@ async with aload("npx my-server") as server:
 
 Register commonly-used servers once, then load by name:
 
-::: {.cell execution_count="25"}
+::: cell
 ``` {.python .cell-code}
 from mcp2py import register, load
 
@@ -641,9 +704,10 @@ Registry is saved to `~/.config/mcp2py/servers.json` automatically.
 
 ### Remote Servers & Authentication
 
-MCP servers can be hosted remotely over HTTP (using SSE or HTTP Stream transport):
+MCP servers can be hosted remotely over HTTP (using SSE or HTTP Stream
+transport):
 
-::: {.cell execution_count="26"}
+::: cell
 ``` {.python .cell-code}
 from mcp2py import load, register
 
@@ -676,15 +740,18 @@ prod = load("production_api", headers={"Authorization": f"Bearer {get_token()}"}
 ```
 :::
 
-**Use cases for remote MCP servers:** - Company-hosted internal tools - Paid API services via MCP - Shared team resources (databases, analytics, etc.) - Cloud-based AI tool marketplaces
+**Use cases for remote MCP servers:** - Company-hosted internal tools -
+Paid API services via MCP - Shared team resources (databases, analytics,
+etc.) - Cloud-based AI tool marketplaces
 
 ### OAuth Authentication (Google, GitHub, etc.)
 
-**Default: Zero Configuration (For beginners, researchers, data analysts)**
+**Default: Zero Configuration (For beginners, researchers, data
+analysts)**
 
 mcp2py handles OAuth automatically - just load and go:
 
-::: {.cell execution_count="27"}
+::: cell
 ``` {.python .cell-code}
 from mcp2py import load
 
@@ -701,7 +768,10 @@ result = server.my_tool()  # Works immediately after login
 ```
 :::
 
-**What happens under the hood:** - mcp2py detects OAuth requirement (401 response) - Discovers OAuth endpoints automatically - Opens browser for login (PKCE-secured) - Stores tokens in `~/.config/mcp2py/tokens.json` - Refreshes tokens automatically when they expire
+**What happens under the hood:** - mcp2py detects OAuth requirement (401
+response) - Discovers OAuth endpoints automatically - Opens browser for
+login (PKCE-secured) - Stores tokens in `~/.config/mcp2py/tokens.json` -
+Refreshes tokens automatically when they expire
 
 **You never think about tokens.**
 
@@ -711,7 +781,7 @@ result = server.my_tool()  # Works immediately after login
 
 Override defaults when building applications:
 
-::: {.cell execution_count="28"}
+::: cell
 ``` {.python .cell-code}
 from mcp2py import load
 
@@ -760,7 +830,7 @@ server = load(
 export MCP_TOKEN="your-token-here"
 ```
 
-::: {.cell execution_count="29"}
+::: cell
 ``` {.python .cell-code}
 # Automatically used if available
 server = load("https://api.example.com/mcp")
@@ -769,13 +839,20 @@ server = load("https://api.example.com/mcp")
 
 ### Security Considerations
 
-**Client-Side (mcp2py handles automatically):** - ✅ Secure token storage - OAuth tokens cached in `~/.fastmcp/oauth-mcp-client-cache/` - ✅ PKCE support for OAuth flows (Proof Key for Code Exchange) - ✅ Automatic token refresh before expiration - ✅ Environment variable support (`MCP_TOKEN`)
+**Client-Side (mcp2py handles automatically):** - ✅ Secure token
+storage - OAuth tokens cached in `~/.fastmcp/oauth-mcp-client-cache/` -
+✅ PKCE support for OAuth flows (Proof Key for Code Exchange) - ✅
+Automatic token refresh before expiration - ✅ Environment variable
+support (`MCP_TOKEN`)
 
-**Server-Side (your responsibility when connecting):** - Use HTTPS URLs for production servers (not HTTP) - Ensure the MCP servers you connect to implement proper authentication - Rotate tokens/credentials regularly - Never commit tokens to version control
+**Server-Side (your responsibility when connecting):** - Use HTTPS URLs
+for production servers (not HTTP) - Ensure the MCP servers you connect
+to implement proper authentication - Rotate tokens/credentials
+regularly - Never commit tokens to version control
 
 **Best Practices:**
 
-::: {.cell execution_count="30"}
+::: cell
 ``` {.python .cell-code}
 # Good: Use environment variables
 import os
@@ -793,11 +870,12 @@ server = load("https://api.example.com/mcp", auth="oauth")
 
 ### Stub Generation
 
-Stubs are automatically generated when you use `load()`. They're cached to `~/.cache/mcp2py/stubs/` for reuse.
+Stubs are automatically generated when you use `load()`. They're cached
+to `~/.cache/mcp2py/stubs/` for reuse.
 
 **Programmatic API:**
 
-::: {.cell execution_count="31"}
+::: cell
 ``` {.python .cell-code}
 from mcp2py import load
 
@@ -817,7 +895,7 @@ print(f"Cached at: {cache_path}")
 
 ### Complete Client Example
 
-::: {.cell execution_count="32"}
+::: cell
 ``` {.python .cell-code}
 """Full example of {python} as MCP client with all features."""
 from mcp2py import load
@@ -870,7 +948,7 @@ print(booking)
 
 ### Inspection
 
-::: {.cell execution_count="33"}
+::: cell
 ``` {.python .cell-code}
 from mcp2py import load
 
@@ -893,7 +971,7 @@ print(server.prompts)
 
 ### Middleware & Hooks
 
-::: {.cell execution_count="34"}
+::: cell
 ``` {.python .cell-code}
 from mcp2py import load
 
@@ -934,20 +1012,26 @@ server = load(
 
 ## Design Principles
 
-1.  **Delightful Defaults**: Authentication, sampling, elicitation all work automatically
-2.  **No Ceiling**: Every default can be overridden for production use cases
-3.  **Beginner-Friendly**: Data analysts and researchers can start immediately
+1.  **Delightful Defaults**: Authentication, sampling, elicitation all
+    work automatically
+2.  **No Ceiling**: Every default can be overridden for production use
+    cases
+3.  **Beginner-Friendly**: Data analysts and researchers can start
+    immediately
 4.  **Production-Ready**: Full control for developers building apps
-5.  **Progressive Disclosure**: Simple by default, powerful when you need it
+5.  **Progressive Disclosure**: Simple by default, powerful when you
+    need it
 6.  **Type Safety**: Generate types wherever possible for IDE support
-7.  **{python}ic**: Convert MCP conventions to {python} conventions automatically
-8.  **Clear Errors**: Helpful messages when things go wrong, with suggestions
+7.  **{python}ic**: Convert MCP conventions to {python} conventions
+    automatically
+8.  **Clear Errors**: Helpful messages when things go wrong, with
+    suggestions
 
 ## Complete Examples
 
 ### Example 1: Synchronous - Weather Analysis with DSPy
 
-::: {.cell execution_count="35"}
+::: cell
 ``` {.python .cell-code}
 #!/usr/bin/env {python}3
 """Analyze weather alerts using DSPy and MCP."""
@@ -983,7 +1067,7 @@ for state in states:
 
 ### Example 2: Asynchronous - Travel Booking System
 
-::: {.cell execution_count="36"}
+::: cell
 ``` {.python .cell-code}
 #!/usr/bin/env {python}3
 """Async travel booking system with MCP and Anthropic."""
@@ -1066,7 +1150,7 @@ if __name__ == "__main__":
 
 ### Example 3: Simple Synchronous - Direct Tool Calls
 
-::: {.cell execution_count="37"}
+::: cell
 ``` {.python .cell-code}
 #!/usr/bin/env {python}3
 """Simple weather check without AI - just direct MCP tool calls."""
@@ -1093,7 +1177,7 @@ print(forecast)
 
 Here are **real MCP servers you can test right now**:
 
-::: {.cell execution_count="38"}
+::: cell
 ``` {.python .cell-code}
 from mcp2py import load
 
@@ -1131,33 +1215,35 @@ Clean, simple, {python}ic. That's the goal. 🎯
 
 ## Architecture Overview
 
-```         
-┌─────────────────────────────────────────────────────────────────┐
-│ Your {python} Code (MCP Client)                                   │
-│                                                                  │
-│  from mcp2py import load                                        │
-│                                                                  │
-│  server = load("npx weather-server")                        │
-│  result = server.get_forecast(lat=37.7, lon=-122.4)            │
-│                                                                  │
-│  ┌──────────────────────────────────────────────────────┐      │
-│  │ Optional: Use with AI SDKs                           │      │
-│  │                                                       │      │
-│  │  import dspy                                          │      │
-│  │  agent = dspy.ReAct(                                 │      │
-│  │    Signature,                                         │      │
-│  │    tools=server.tools  # ← mcp2py                    │      │
-│  │  )                                                    │      │
-│  └──────────────────────────────────────────────────────┘      │
-└─────────────────────────────────────────────────────────────────┘
-                            ↕ JSON-RPC over stdio
-┌─────────────────────────────────────────────────────────────────┐
-│ MCP Server Process (separate process)                           │
-│                                                                  │
-│  Node.js / {python} / Rust / whatever                             │
-│  Exposes: tools, resources, prompts                             │
-│  May request: sampling, elicitation, roots                      │
-└─────────────────────────────────────────────────────────────────┘
-```
+    ┌─────────────────────────────────────────────────────────────────┐
+    │ Your {python} Code (MCP Client)                                   │
+    │                                                                  │
+    │  from mcp2py import load                                        │
+    │                                                                  │
+    │  server = load("npx weather-server")                        │
+    │  result = server.get_forecast(lat=37.7, lon=-122.4)            │
+    │                                                                  │
+    │  ┌──────────────────────────────────────────────────────┐      │
+    │  │ Optional: Use with AI SDKs                           │      │
+    │  │                                                       │      │
+    │  │  import dspy                                          │      │
+    │  │  agent = dspy.ReAct(                                 │      │
+    │  │    Signature,                                         │      │
+    │  │    tools=server.tools  # ← mcp2py                    │      │
+    │  │  )                                                    │      │
+    │  └──────────────────────────────────────────────────────┘      │
+    └─────────────────────────────────────────────────────────────────┘
+                                ↕ JSON-RPC over stdio
+    ┌─────────────────────────────────────────────────────────────────┐
+    │ MCP Server Process (separate process)                           │
+    │                                                                  │
+    │  Node.js / {python} / Rust / whatever                             │
+    │  Exposes: tools, resources, prompts                             │
+    │  May request: sampling, elicitation, roots                      │
+    └─────────────────────────────────────────────────────────────────┘
 
-**Key Points:** 1. **mcp2py is the client** - it speaks JSON-RPC to the server 2. **Server is a separate process** - started via `command` parameter 3. **Low-level and generic** - works with any AI SDK or standalone 4. **Bidirectional** - client calls server tools, server can request client capabilities
+**Key Points:** 1. **mcp2py is the client** - it speaks JSON-RPC to the
+server 2. **Server is a separate process** - started via `command`
+parameter 3. **Low-level and generic** - works with any AI SDK or
+standalone 4. **Bidirectional** - client calls server tools, server can
+request client capabilities
