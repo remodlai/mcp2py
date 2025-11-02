@@ -1,3 +1,9 @@
+---
+execute:
+  eval: false
+toc-title: Table of contents
+---
+
 # mcp2py: Turn any MCP server into a python module
 
 MCP (Model Context Protocol) is an emerging standard for AI tools and resources. The standard is compatible with normal REST API servers, but adds extra metadata to describe tools, resources, and prompts in a machine-readable way. This provides us with a great opportunity to create Python modules that completely and automatically map to these MCP servers. The biggest advantage of this approach is that we can use any MCP server as if it were a native Python library, with zero configuration. This can be quite a big deal as creating Python software development kits that map to REST APIs is extremely common and was quite a manual process. Now, if the organization hosting the REST API also provides an MCP interface, we can automatically generate a Python SDK for it with zero effort! Don't worry if this is not all clear to you. You can still leverage the power of mcp2py without knowing all the details of MCP. All you need to know is: if you want to programmatically interact with a website, it is likely that they have an API and as time goes on it is very likely that they have an MCP interface for that API. If they do, you don't have to learn a whole set of web programming skills, you can just use mcp2py to load the MCP server and start calling functions right away as if it were a native Python library!
@@ -8,11 +14,13 @@ Another cool thing to note is that servers don't have to be running remotely. Yo
 
 Here is a very simple example of using mcp2py to interact with your local filesystem. That is not very useful as you could just use the built-in Python libraries to do that, but it serves as a very simple example to illustrate how mcp2py works. In this snippet of code we use load to both start the MCP server (which is a Node.js server in this case) and connect to it. Once connected we can call the list_directory tool as if it were a native Python function:
 
-```python
+::: {.cell execution_count="1"}
+``` {.python .cell-code}
 from mcp2py import load
 fstools = load("npx -y @modelcontextprotocol/server-filesystem /home")
 fstools.list_directory("/home")
 ```
+:::
 
 ```         
 [DIR] maxime
@@ -20,20 +28,18 @@ fstools.list_directory("/home")
 
 This is similar to using the os library in Python:
 
-```python
+::: {.cell execution_count="2"}
+``` {.python .cell-code}
 import os
 os.listdir("/home")
 ```
+:::
 
-```
+```         
 ['maxime']
 ```
 
 The main difference is that instead of going directly from Python to the system, we send commands to a local Node (JavaScript) server and that server has some 'security' features. For example, we are not allowed to search outside of /home because that is what we have set as the root. Those features are very useful when you want to expose your file system to an LLM.
-
-
-
-
 
 ------------------------------------------------------------------------
 
@@ -47,7 +53,8 @@ pip install mcp2py
 
 **2. Use it**
 
-```{python}
+::: {.cell execution_count="3"}
+``` {.python .cell-code}
 from mcp2py import load
 
 # Load any MCP server
@@ -58,6 +65,7 @@ files = server.list_directory(path="/tmp")
 content = server.read_file(path="/tmp/test.txt")
 content
 ```
+:::
 
 **3. That's it!**
 
@@ -87,7 +95,8 @@ mcp2py is designed for **researchers, data analysts, and {python} beginners** wh
 
 ### For Beginners & Researchers: It Just Works
 
-```{python}
+::: {.cell execution_count="4"}
+``` {.python .cell-code}
 from mcp2py import load
 
 # Load any MCP server - that's it!
@@ -113,6 +122,7 @@ server = load("https://api.example.com/mcp")
 result = server.analyze_data(dataset="sales_2024.csv")
 print(result)
 ```
+:::
 
 **That's it. No configuration. No setup. It just works.**
 
@@ -122,7 +132,8 @@ print(result)
 
 ### Basic Usage
 
-```{python}
+::: {.cell execution_count="5"}
+``` {.python .cell-code}
 from mcp2py import load
 
 # Load an MCP server - simple and clean
@@ -149,12 +160,14 @@ print(weather.current_config)      # Dynamic resource
 # Prompts become template functions
 prompt = weather.create_weather_report(location="NYC", style="casual")
 ```
+:::
 
 ### Use with AI Frameworks (DSPy, Claudette, etc.)
 
 **The `.tools` attribute gives you a list of callable {python} functions**:
 
-```{python}
+::: {.cell execution_count="6"}
+``` {.python .cell-code}
 from mcp2py import load
 
 server = load("npx -y @modelcontextprotocol/server-filesystem /tmp")
@@ -170,12 +183,14 @@ print(tools[0].__doc__)   # "Read a file from the filesystem"
 # And they're callable!
 result = tools[0](path="/tmp/test.txt")
 ```
+:::
 
 ### Working with AI Frameworks
 
 The `.tools` attribute gives you callable functions ready for frameworks like DSPy and Claudette:
 
-```{python}
+::: {.cell execution_count="7"}
+``` {.python .cell-code}
 from mcp2py import load
 import dspy
 
@@ -195,8 +210,10 @@ react = dspy.ReAct(CustomerService, tools=travel.tools)
 result = react(user_request="Book a flight from SFO to JFK on 09/01/2025")
 print(result)
 ```
+:::
 
-```{python}
+::: {.cell execution_count="8"}
+``` {.python .cell-code}
 # Also works with Claudette
 from mcp2py import load
 from claudette import Chat
@@ -210,6 +227,7 @@ response = chat("What's the weather in Tokyo?")
 # Claudette automatically calls the tools as needed
 print(response)
 ```
+:::
 
 **Note:** For SDKs that have native MCP support (Anthropic, OpenAI, Google Gemini), use their built-in MCP integration directly. The `.tools` attribute is for frameworks like DSPy and Claudette that expect {python} callables.
 
@@ -217,7 +235,8 @@ print(response)
 
 **Auto-generated stubs for perfect autocomplete:**
 
-```{python}
+::: {.cell execution_count="9"}
+``` {.python .cell-code}
 from mcp2py import load
 
 # Stubs auto-generated to ~/.cache/mcp2py/stubs/
@@ -229,10 +248,12 @@ server.search_files(
     max_results=10   # type: int, optional - IDE suggests this!
 )  # Returns: dict[str, Any] - IDE shows return type!
 ```
+:::
 
 **Manual stub generation:**
 
-```{python}
+::: {.cell execution_count="10"}
+``` {.python .cell-code}
 # Generate stub to specific location for your project
 server = load("npx weather-server")
 server.generate_stubs("./stubs/weather.pyi")
@@ -240,6 +261,7 @@ server.generate_stubs("./stubs/weather.pyi")
 # Or let it auto-cache (default behavior)
 # Stubs saved to: ~/.cache/mcp2py/stubs/<command_hash>.pyi
 ```
+:::
 
 **How it works:** - `load()` returns a **dynamically typed class** with all methods pre-defined - Your IDE sees proper type hints immediately - **no configuration needed!** - Type hints include parameter names, types, defaults, and return types - Works in VS Code, PyCharm, Jupyter notebooks, and any {python} IDE - Also generates `.pyi` stub files to `~/.cache/mcp2py/stubs/` for reference
 
@@ -255,7 +277,8 @@ When a server needs LLM completions, mcp2py handles it automatically.
 
 **Default: Works Out of the Box**
 
-```{python}
+::: {.cell execution_count="11"}
+``` {.python .cell-code}
 from mcp2py import load
 
 # Just works! Uses your default LLM
@@ -269,10 +292,12 @@ server = load("npx travel-server")
 
 result = server.book_flight(destination="Tokyo")
 ```
+:::
 
 **Configure your preferred LLM:**
 
-```{python}
+::: {.cell execution_count="12"}
+``` {.python .cell-code}
 # Set via environment (recommended)
 import os
 os.environ["ANTHROPIC_API_KEY"] = "sk-..."
@@ -290,10 +315,12 @@ configure(
 # Now all servers use this LLM for sampling
 server = load("npx travel-server")
 ```
+:::
 
 **Advanced: Custom Sampling Handler**
 
-```{python}
+::: {.cell execution_count="13"}
+``` {.python .cell-code}
 from mcp2py import load
 
 def my_sampling_handler(messages, model_prefs, system_prompt, max_tokens):
@@ -312,15 +339,18 @@ server = load(
     on_sampling=my_sampling_handler  # Override default
 )
 ```
+:::
 
 **Disable sampling (for security/cost control):**
 
-```{python}
+::: {.cell execution_count="14"}
+``` {.python .cell-code}
 server = load(
     "npx travel-server",
     allow_sampling=False  # Raises error if server requests LLM
 )
 ```
+:::
 
 ### **Elicitation**
 
@@ -328,7 +358,8 @@ When a server needs user input, mcp2py prompts automatically.
 
 **Default: Terminal Prompts**
 
-```{python}
+::: {.cell execution_count="15"}
+``` {.python .cell-code}
 from mcp2py import load
 
 # Just works! Terminal prompts appear automatically
@@ -345,6 +376,7 @@ server = load("npx travel-server")
 
 result = server.book_flight(destination="Paris")
 ```
+:::
 
 **What you see:**
 
@@ -370,7 +402,8 @@ Booking confirmed!
 
 **Advanced: Custom Elicitation Handler**
 
-```{python}
+::: {.cell execution_count="16"}
+``` {.python .cell-code}
 from mcp2py import load
 
 def my_input_handler(message, schema):
@@ -384,10 +417,12 @@ server = load(
     on_elicitation=my_input_handler
 )
 ```
+:::
 
 **Disable elicitation (for automated scripts):**
 
-```{python}
+::: {.cell execution_count="17"}
+``` {.python .cell-code}
 server = load(
     "npx travel-server",
     allow_elicitation=False  # Raises error if server asks for input
@@ -402,12 +437,14 @@ server = load(
     }
 )
 ```
+:::
 
 ### **Roots**
 
 Servers can ask which directories to focus on. Optional, simple:
 
-```{python}
+::: {.cell execution_count="18"}
+``` {.python .cell-code}
 # Single directory
 server = load("npx filesystem-server", roots="/home/user/projects")
 
@@ -420,6 +457,7 @@ server = load(
 # Update roots dynamically
 server.set_roots(["/home/user/new-project"])
 ```
+:::
 
 ## Design Rules
 
@@ -434,7 +472,8 @@ MCP tools map to {python} functions with full support for:
 
 **Naming convention**: Snake_case (MCP `getWeather` → {python} `get_weather`)
 
-```{python}
+::: {.cell execution_count="19"}
+``` {.python .cell-code}
 # MCP Tool Definition:
 # {
 #   "name": "searchFiles",
@@ -459,6 +498,7 @@ def search_files(pattern: str, max_results: int = 100) -> dict[str, Any]:
     """
     ...
 ```
+:::
 
 ### 2. **Resources → Constants or Properties**
 
@@ -467,7 +507,8 @@ Resources map differently based on their nature:
 -   **Static resources** (like documentation, schemas): Module-level constants (UPPER_CASE)
 -   **Dynamic resources** (may change): Properties with getters (lowercase)
 
-```{python}
+::: {.cell execution_count="20"}
+``` {.python .cell-code}
 # Static resource (cached)
 API_DOCS: str = server._get_resource("api://docs")
 
@@ -477,6 +518,7 @@ def current_status() -> dict[str, Any]:
     """Current server status."""
     return server._get_resource("status://current")
 ```
+:::
 
 **Naming convention**: - Static: `UPPER_SNAKE_CASE` - Dynamic: `lower_snake_case` properties
 
@@ -484,7 +526,8 @@ def current_status() -> dict[str, Any]:
 
 Prompts become functions that return formatted strings:
 
-```{python}
+::: {.cell execution_count="21"}
+``` {.python .cell-code}
 # MCP Prompt:
 # {
 #   "name": "reviewCode",
@@ -508,12 +551,14 @@ def review_code(code: str, focus: str | None = None) -> str:
     """
     ...
 ```
+:::
 
 ### 4. **Error Handling**
 
 {python}ic exceptions for common failures:
 
-```{python}
+::: {.cell execution_count="22"}
+``` {.python .cell-code}
 from mcp2py.exceptions import (
     MCPConnectionError,    # Can't connect to server
     MCPToolError,          # Tool execution failed
@@ -528,12 +573,14 @@ except MCPValidationError as e:
 except MCPToolError as e:
     print(f"Tool failed: {e}")
 ```
+:::
 
 ### 5. **Async Support**
 
 Use `aload()` for async MCP servers:
 
-```{python}
+::: {.cell execution_count="23"}
+``` {.python .cell-code}
 from mcp2py import aload
 
 # Async version - all tools become async
@@ -542,12 +589,14 @@ server = await aload("npx async-server")
 result = await server.fetch_data(url="https://example.com")
 status = await server.get_current_status()
 ```
+:::
 
 ### 6. **Context Managers**
 
 Automatic cleanup when using `with`:
 
-```{python}
+::: {.cell execution_count="24"}
+``` {.python .cell-code}
 from mcp2py import load
 
 # Sync version
@@ -559,6 +608,7 @@ with load("npx my-server") as server:
 async with aload("npx my-server") as server:
     result = await server.do_work()
 ```
+:::
 
 ## Configuration
 
@@ -566,7 +616,8 @@ async with aload("npx my-server") as server:
 
 Register commonly-used servers once, then load by name:
 
-```{python}
+::: {.cell execution_count="25"}
+``` {.python .cell-code}
 from mcp2py import register, load
 
 # Register servers (run once, e.g., in your setup script)
@@ -584,6 +635,7 @@ brave = load("brave")
 # Or use commands directly (no registration needed)
 custom = load("npx my-custom-server")
 ```
+:::
 
 Registry is saved to `~/.config/mcp2py/servers.json` automatically.
 
@@ -591,7 +643,8 @@ Registry is saved to `~/.config/mcp2py/servers.json` automatically.
 
 MCP servers can be hosted remotely over HTTP (using SSE or HTTP Stream transport):
 
-```{python}
+::: {.cell execution_count="26"}
+``` {.python .cell-code}
 from mcp2py import load, register
 
 # Connect to remote MCP server
@@ -621,6 +674,7 @@ register(
 # Load with auth at runtime
 prod = load("production_api", headers={"Authorization": f"Bearer {get_token()}"})
 ```
+:::
 
 **Use cases for remote MCP servers:** - Company-hosted internal tools - Paid API services via MCP - Shared team resources (databases, analytics, etc.) - Cloud-based AI tool marketplaces
 
@@ -630,7 +684,8 @@ prod = load("production_api", headers={"Authorization": f"Bearer {get_token()}"}
 
 mcp2py handles OAuth automatically - just load and go:
 
-```{python}
+::: {.cell execution_count="27"}
+``` {.python .cell-code}
 from mcp2py import load
 
 # That's it! Browser opens, you log in, then continue coding
@@ -644,6 +699,7 @@ server = load("https://api.example.com/mcp")
 
 result = server.my_tool()  # Works immediately after login
 ```
+:::
 
 **What happens under the hood:** - mcp2py detects OAuth requirement (401 response) - Discovers OAuth endpoints automatically - Opens browser for login (PKCE-secured) - Stores tokens in `~/.config/mcp2py/tokens.json` - Refreshes tokens automatically when they expire
 
@@ -655,7 +711,8 @@ result = server.my_tool()  # Works immediately after login
 
 Override defaults when building applications:
 
-```{python}
+::: {.cell execution_count="28"}
+``` {.python .cell-code}
 from mcp2py import load
 
 # Option 1: Custom token provider
@@ -694,6 +751,7 @@ server = load(
     auto_auth=False  # Raises error instead of opening browser
 )
 ```
+:::
 
 **Environment variable support (for production):**
 
@@ -702,10 +760,12 @@ server = load(
 export MCP_TOKEN="your-token-here"
 ```
 
-```{python}
+::: {.cell execution_count="29"}
+``` {.python .cell-code}
 # Automatically used if available
 server = load("https://api.example.com/mcp")
 ```
+:::
 
 ### Security Considerations
 
@@ -715,7 +775,8 @@ server = load("https://api.example.com/mcp")
 
 **Best Practices:**
 
-```{python}
+::: {.cell execution_count="30"}
+``` {.python .cell-code}
 # Good: Use environment variables
 import os
 server = load("https://api.example.com/mcp", auth=os.getenv("MCP_TOKEN"))
@@ -726,6 +787,7 @@ server = load("https://api.example.com/mcp", auth="oauth")
 # Avoid: Hardcoded tokens in code
 # server = load("https://api.example.com/mcp", auth="sk-secret-123")  # Don't do this!
 ```
+:::
 
 ## Advanced Features
 
@@ -735,7 +797,8 @@ Stubs are automatically generated when you use `load()`. They're cached to `~/.c
 
 **Programmatic API:**
 
-```{python}
+::: {.cell execution_count="31"}
+``` {.python .cell-code}
 from mcp2py import load
 
 # Stubs auto-generated on load
@@ -750,10 +813,12 @@ from mcp2py.stubs import get_stub_cache_path
 cache_path = get_stub_cache_path("npx weather-server")
 print(f"Cached at: {cache_path}")
 ```
+:::
 
 ### Complete Client Example
 
-```{python}
+::: {.cell execution_count="32"}
+``` {.python .cell-code}
 """Full example of {python} as MCP client with all features."""
 from mcp2py import load
 import anthropic
@@ -801,10 +866,12 @@ server = load(
 booking = server.book_flight(destination="Barcelona", dates="June 15-22")
 print(booking)
 ```
+:::
 
 ### Inspection
 
-```{python}
+::: {.cell execution_count="33"}
+``` {.python .cell-code}
 from mcp2py import load
 
 server = load("npx my-server")
@@ -822,10 +889,12 @@ print(server.resources)
 # List prompts
 print(server.prompts)
 ```
+:::
 
 ### Middleware & Hooks
 
-```{python}
+::: {.cell execution_count="34"}
+``` {.python .cell-code}
 from mcp2py import load
 
 def log_tool_calls(tool_name: str, args: dict, result: dict):
@@ -837,6 +906,7 @@ server = load(
     timeout=30.0
 )
 ```
+:::
 
 ## Implementation Priorities
 
@@ -877,7 +947,8 @@ server = load(
 
 ### Example 1: Synchronous - Weather Analysis with DSPy
 
-```{python}
+::: {.cell execution_count="35"}
+``` {.python .cell-code}
 #!/usr/bin/env {python}3
 """Analyze weather alerts using DSPy and MCP."""
 
@@ -908,10 +979,12 @@ for state in states:
     print(f"\n{state}:")
     print(result.analysis)
 ```
+:::
 
 ### Example 2: Asynchronous - Travel Booking System
 
-```{python}
+::: {.cell execution_count="36"}
+``` {.python .cell-code}
 #!/usr/bin/env {python}3
 """Async travel booking system with MCP and Anthropic."""
 
@@ -989,10 +1062,12 @@ async def main():
 if __name__ == "__main__":
     asyncio.run(main())
 ```
+:::
 
 ### Example 3: Simple Synchronous - Direct Tool Calls
 
-```{python}
+::: {.cell execution_count="37"}
+``` {.python .cell-code}
 #!/usr/bin/env {python}3
 """Simple weather check without AI - just direct MCP tool calls."""
 
@@ -1012,12 +1087,14 @@ print(forecast)
 
 # MCP tools are just {python} functions!
 ```
+:::
 
 ## Testing with Real Servers
 
 Here are **real MCP servers you can test right now**:
 
-```{python}
+::: {.cell execution_count="38"}
+``` {.python .cell-code}
 from mcp2py import load
 
 # Weather server (Node.js via npx)
@@ -1046,6 +1123,7 @@ print(weather.tools)      # List of tool schemas
 print(weather.get_alerts) # Callable function
 result = weather.get_alerts(state="CA")
 ```
+:::
 
 Clean, simple, {python}ic. That's the goal. 🎯
 
