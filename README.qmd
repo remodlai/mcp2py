@@ -39,10 +39,6 @@ os.listdir("/home")
 
 The main difference is that instead of going directly from Python to the system, we send commands to a local Node (JavaScript) server and that server has some 'security' features. For example, we are not allowed to search outside of /home because that is what we have set as the root. Those features are very useful when you want to expose your file system to an LLM.
 
-
-
-TEST ACTIONS
-
 ------------------------------------------------------------------------
 
 ## Quick Start
