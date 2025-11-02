@@ -13,7 +13,7 @@ Another cool thing to note is that servers don't have to be running remotely. Yo
 
 Here is a very simple example of using mcp2py to interact with your local filesystem. That is not very useful as you could just use the built-in Python libraries to do that, but it serves as a very simple example to illustrate how mcp2py works. In this snippet of code we use load to both start the MCP server (which is a Node.js server in this case) and connect to it. Once connected we can call the list_directory tool as if it were a native Python function:
 
-```{python}
+```python
 from mcp2py import load
 fstools = load("npx -y @modelcontextprotocol/server-filesystem /home")
 fstools.list_directory("/home")
@@ -25,7 +25,7 @@ fstools.list_directory("/home")
 
 This is similar to using the os library in Python:
 
-```{python}
+```python
 import os
 os.listdir("/home")
 ```
