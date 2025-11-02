@@ -1,6 +1,9 @@
 ---
-execute: 
-  eval: false
+format:
+  gfm:
+    output-file: README.md
+execute:
+  enabled: false
 ---
 
 # mcp2py: Turn any MCP server into a python module
