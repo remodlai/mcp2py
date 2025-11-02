@@ -1,50 +1,80 @@
-# mcp2py: Turn any MCP server into a {python} module
+---
+execute: 
+  eval: false
+---
 
-**Use any MCP server in 3 lines of {python} code.**
+# mcp2py: Turn any MCP server into a python module
+
+MCP (Model Context Protocol) is an emerging standard for AI tools and resources. The standard is compatible with normal REST API servers, but adds extra metadata to describe tools, resources, and prompts in a machine-readable way. This provides us with a great opportunity to create Python modules that completely and automatically map to these MCP servers. The biggest advantage of this approach is that we can use any MCP server as if it were a native Python library, with zero configuration. This can be quite a big deal as creating Python software development kits that map to REST APIs is extremely common and was quite a manual process. Now, if the organization hosting the REST API also provides an MCP interface, we can automatically generate a Python SDK for it with zero effort! Don't worry if this is not all clear to you. You can still leverage the power of mcp2py without knowing all the details of MCP. All you need to know is: if you want to programmatically interact with a website, it is likely that they have an API and as time goes on it is very likely that they have an MCP interface for that API. If they do, you don't have to learn a whole set of web programming skills, you can just use mcp2py to load the MCP server and start calling functions right away as if it were a native Python library!
+
+Another cool thing to note is that servers don't have to be running remotely. You can (and have) a lot of servers running on your own personal computer right now. This is useful to have different programs, possibly in different programming languages, talking to each other. As apps that you install will more and more open up a small local server on your machine to let LLMs interact with them, you will also be able to leverage mcp2py to interact with these local servers. That could look like Slack opening a server that lets you query your messages. If so, you could then use mcp2py and have a Python module (a library in essence) that lets you query your Slack messages directly from Python. Super powerful!
+
+## Overview
+
+Here is a very simple example of using mcp2py to interact with your local filesystem. That is not very useful as you could just use the built-in Python libraries to do that, but it serves as a very simple example to illustrate how mcp2py works. In this snippet of code we use load to both start the MCP server (which is a Node.js server in this case) and connect to it. Once connected we can call the list_directory tool as if it were a native Python function:
 
 ```{python}
 from mcp2py import load
-
-server = load("npx -y @modelcontextprotocol/server-filesystem /tmp")
-server.list_directory(path="/tmp")
+fstools = load("npx -y @modelcontextprotocol/server-filesystem /home")
+fstools.list_directory("/home")
 ```
 
-That's it. No configuration, no async/await, no setup. **Just import, load, and call.**
+```         
+[DIR] maxime
+```
 
----
+This is similar to using the os library in Python:
+
+```{python}
+import os
+os.listdir("/home")
+```
+
+```
+['maxime']
+```
+
+The main difference is that instead of going directly from Python to the system, we send commands to a local Node (JavaScript) server and that server has some 'security' features. For example, we are not allowed to search outside of /home because that is what we have set as the root. Those features are very useful when you want to expose your file system to an LLM.
+
+
+
+
+
+------------------------------------------------------------------------
 
 ## Quick Start
 
 **1. Install**
-```bash
+
+``` bash
 pip install mcp2py
 ```
 
 **2. Use it**
+
 ```{python}
 from mcp2py import load
 
 # Load any MCP server
-server = load("npx -y @modelcontextprotocol/server-filesystem /tmp")
+server = load("npx -y @modelcontextprotocol/server-filesystem .")
 
 # Tools become {python} methods
 files = server.list_directory(path="/tmp")
 content = server.read_file(path="/tmp/test.txt")
+content
 ```
 
 **3. That's it!**
 
-The server runs as a subprocess, tools are {python} methods, everything just works.
-
----
+The server runs as a subprocess, tools are {python} methods, everything just works. d
 
 ## What is MCP?
 
 MCP servers expose **tools**, **resources**, and **prompts** via a protocol. mcp2py turns them into {python}:
 
-- 🔧 **Tools** → {python} functions
-- 📦 **Resources** → {python} constants/attributes
-- 📝 **Prompts** → Template functions/strings
+-   🔧 **Tools** → {python} functions
+-   📦 **Resources** → {python} constants/attributes
+-   📝 **Prompts** → Template functions/strings
 
 ## Philosophy
 
@@ -52,23 +82,11 @@ MCP servers expose **tools**, **resources**, and **prompts** via a protocol. mcp
 
 mcp2py is designed for **researchers, data analysts, and {python} beginners** who want to try MCP servers without complexity. At the same time, it provides **full control** for developers building production applications.
 
-**Zero configuration by default:**
-- OAuth login? Browser opens automatically
-- Need user input? Terminal prompts appear
-- Server needs an LLM? We handle it
-- Everything "just works" out of the box
+**Zero configuration by default:** - OAuth login? Browser opens automatically - Need user input? Terminal prompts appear - Server needs an LLM? We handle it - Everything "just works" out of the box
 
-**No ceiling for advanced users:**
-- Override any default behavior
-- Customize auth flows
-- Build production apps
-- Full control when you need it
+**No ceiling for advanced users:** - Override any default behavior - Customize auth flows - Build production apps - Full control when you need it
 
-**Your {python} REPL/code becomes an MCP client.** The server is a separate process (Node.js, {python}, whatever) that mcp2py communicates with via JSON-RPC. Your {python} code can:
-- Call tools (server functions) as if they're local {python} functions
-- Access resources (server data) as {python} attributes
-- Handle server requests (sampling, elicitation) automatically or via custom callbacks
-- Work seamlessly with any AI SDK (Anthropic, OpenAI, DSPy, etc.)
+**Your {python} REPL/code becomes an MCP client.** The server is a separate process (Node.js, {python}, whatever) that mcp2py communicates with via JSON-RPC. Your {python} code can: - Call tools (server functions) as if they're local {python} functions - Access resources (server data) as {python} attributes - Handle server requests (sampling, elicitation) automatically or via custom callbacks - Work seamlessly with any AI SDK (Anthropic, OpenAI, DSPy, etc.)
 
 ## Getting Started
 
@@ -103,7 +121,7 @@ print(result)
 
 **That's it. No configuration. No setup. It just works.**
 
----
+------------------------------------------------------------------------
 
 ## Interface Design
 
@@ -228,12 +246,7 @@ server.generate_stubs("./stubs/weather.pyi")
 # Stubs saved to: ~/.cache/mcp2py/stubs/<command_hash>.pyi
 ```
 
-**How it works:**
-- `load()` returns a **dynamically typed class** with all methods pre-defined
-- Your IDE sees proper type hints immediately - **no configuration needed!**
-- Type hints include parameter names, types, defaults, and return types
-- Works in VS Code, PyCharm, Jupyter notebooks, and any {python} IDE
-- Also generates `.pyi` stub files to `~/.cache/mcp2py/stubs/` for reference
+**How it works:** - `load()` returns a **dynamically typed class** with all methods pre-defined - Your IDE sees proper type hints immediately - **no configuration needed!** - Type hints include parameter names, types, defaults, and return types - Works in VS Code, PyCharm, Jupyter notebooks, and any {python} IDE - Also generates `.pyi` stub files to `~/.cache/mcp2py/stubs/` for reference
 
 **Zero configuration required** - autocomplete just works! ✨
 
@@ -340,7 +353,7 @@ result = server.book_flight(destination="Paris")
 
 **What you see:**
 
-```
+```         
 Calling book_flight...
 
 ┌─────────────────────────────────────────┐
@@ -396,6 +409,7 @@ server = load(
 ```
 
 ### **Roots**
+
 Servers can ask which directories to focus on. Optional, simple:
 
 ```{python}
@@ -418,10 +432,10 @@ server.set_roots(["/home/user/new-project"])
 
 MCP tools map to {python} functions with full support for:
 
-- **Arguments**: Both required and optional parameters
-- **Type hints**: Generated from JSON Schema `inputSchema`
-- **Docstrings**: Built from tool `description`
-- **Return types**: Typed as `dict[str, Any]` (MCP tools return JSON)
+-   **Arguments**: Both required and optional parameters
+-   **Type hints**: Generated from JSON Schema `inputSchema`
+-   **Docstrings**: Built from tool `description`
+-   **Return types**: Typed as `dict[str, Any]` (MCP tools return JSON)
 
 **Naming convention**: Snake_case (MCP `getWeather` → {python} `get_weather`)
 
@@ -455,8 +469,8 @@ def search_files(pattern: str, max_results: int = 100) -> dict[str, Any]:
 
 Resources map differently based on their nature:
 
-- **Static resources** (like documentation, schemas): Module-level constants (UPPER_CASE)
-- **Dynamic resources** (may change): Properties with getters (lowercase)
+-   **Static resources** (like documentation, schemas): Module-level constants (UPPER_CASE)
+-   **Dynamic resources** (may change): Properties with getters (lowercase)
 
 ```{python}
 # Static resource (cached)
@@ -469,9 +483,7 @@ def current_status() -> dict[str, Any]:
     return server._get_resource("status://current")
 ```
 
-**Naming convention**:
-- Static: `UPPER_SNAKE_CASE`
-- Dynamic: `lower_snake_case` properties
+**Naming convention**: - Static: `UPPER_SNAKE_CASE` - Dynamic: `lower_snake_case` properties
 
 ### 3. **Prompts → Template Functions**
 
@@ -615,11 +627,7 @@ register(
 prod = load("production_api", headers={"Authorization": f"Bearer {get_token()}"})
 ```
 
-**Use cases for remote MCP servers:**
-- Company-hosted internal tools
-- Paid API services via MCP
-- Shared team resources (databases, analytics, etc.)
-- Cloud-based AI tool marketplaces
+**Use cases for remote MCP servers:** - Company-hosted internal tools - Paid API services via MCP - Shared team resources (databases, analytics, etc.) - Cloud-based AI tool marketplaces
 
 ### OAuth Authentication (Google, GitHub, etc.)
 
@@ -642,16 +650,11 @@ server = load("https://api.example.com/mcp")
 result = server.my_tool()  # Works immediately after login
 ```
 
-**What happens under the hood:**
-- mcp2py detects OAuth requirement (401 response)
-- Discovers OAuth endpoints automatically
-- Opens browser for login (PKCE-secured)
-- Stores tokens in `~/.config/mcp2py/tokens.json`
-- Refreshes tokens automatically when they expire
+**What happens under the hood:** - mcp2py detects OAuth requirement (401 response) - Discovers OAuth endpoints automatically - Opens browser for login (PKCE-secured) - Stores tokens in `~/.config/mcp2py/tokens.json` - Refreshes tokens automatically when they expire
 
 **You never think about tokens.**
 
----
+------------------------------------------------------------------------
 
 **Advanced: Custom OAuth (For production apps)**
 
@@ -699,7 +702,7 @@ server = load(
 
 **Environment variable support (for production):**
 
-```bash
+``` bash
 # Set token via environment
 export MCP_TOKEN="your-token-here"
 ```
@@ -711,19 +714,12 @@ server = load("https://api.example.com/mcp")
 
 ### Security Considerations
 
-**Client-Side (mcp2py handles automatically):**
-- ✅ Secure token storage - OAuth tokens cached in `~/.fastmcp/oauth-mcp-client-cache/`
-- ✅ PKCE support for OAuth flows (Proof Key for Code Exchange)
-- ✅ Automatic token refresh before expiration
-- ✅ Environment variable support (`MCP_TOKEN`)
+**Client-Side (mcp2py handles automatically):** - ✅ Secure token storage - OAuth tokens cached in `~/.fastmcp/oauth-mcp-client-cache/` - ✅ PKCE support for OAuth flows (Proof Key for Code Exchange) - ✅ Automatic token refresh before expiration - ✅ Environment variable support (`MCP_TOKEN`)
 
-**Server-Side (your responsibility when connecting):**
-- Use HTTPS URLs for production servers (not HTTP)
-- Ensure the MCP servers you connect to implement proper authentication
-- Rotate tokens/credentials regularly
-- Never commit tokens to version control
+**Server-Side (your responsibility when connecting):** - Use HTTPS URLs for production servers (not HTTP) - Ensure the MCP servers you connect to implement proper authentication - Rotate tokens/credentials regularly - Never commit tokens to version control
 
 **Best Practices:**
+
 ```{python}
 # Good: Use environment variables
 import os
@@ -850,34 +846,37 @@ server = load(
 ## Implementation Priorities
 
 ### Phase 1: Core Functionality
-1. `load()` function with stdio transport
-2. Tool → function mapping with type hints
-3. Simple resource access
-4. Prompt → template function mapping
-5. `.tools` attribute for AI SDK integration
+
+1.  `load()` function with stdio transport
+2.  Tool → function mapping with type hints
+3.  Simple resource access
+4.  Prompt → template function mapping
+5.  `.tools` attribute for AI SDK integration
 
 ### Phase 2: Developer Experience
-1. Stub generation for IDE support
-2. Server registry (`~/.config/mcp2py/servers.json`)
-3. Context manager protocol
-4. Better error messages and exceptions
+
+1.  Stub generation for IDE support
+2.  Server registry (`~/.config/mcp2py/servers.json`)
+3.  Context manager protocol
+4.  Better error messages and exceptions
 
 ### Phase 3: Advanced Features
-1. `aload()` for async support
-2. SSE transport for HTTP servers
-3. Middleware/hooks system
-4. Sampling and elicitation callbacks
+
+1.  `aload()` for async support
+2.  SSE transport for HTTP servers
+3.  Middleware/hooks system
+4.  Sampling and elicitation callbacks
 
 ## Design Principles
 
-1. **Delightful Defaults**: Authentication, sampling, elicitation all work automatically
-2. **No Ceiling**: Every default can be overridden for production use cases
-3. **Beginner-Friendly**: Data analysts and researchers can start immediately
-4. **Production-Ready**: Full control for developers building apps
-5. **Progressive Disclosure**: Simple by default, powerful when you need it
-6. **Type Safety**: Generate types wherever possible for IDE support
-7. **{python}ic**: Convert MCP conventions to {python} conventions automatically
-8. **Clear Errors**: Helpful messages when things go wrong, with suggestions
+1.  **Delightful Defaults**: Authentication, sampling, elicitation all work automatically
+2.  **No Ceiling**: Every default can be overridden for production use cases
+3.  **Beginner-Friendly**: Data analysts and researchers can start immediately
+4.  **Production-Ready**: Full control for developers building apps
+5.  **Progressive Disclosure**: Simple by default, powerful when you need it
+6.  **Type Safety**: Generate types wherever possible for IDE support
+7.  **{python}ic**: Convert MCP conventions to {python} conventions automatically
+8.  **Clear Errors**: Helpful messages when things go wrong, with suggestions
 
 ## Complete Examples
 
@@ -1055,11 +1054,11 @@ result = weather.get_alerts(state="CA")
 
 Clean, simple, {python}ic. That's the goal. 🎯
 
----
+------------------------------------------------------------------------
 
 ## Architecture Overview
 
-```
+```         
 ┌─────────────────────────────────────────────────────────────────┐
 │ Your {python} Code (MCP Client)                                   │
 │                                                                  │
@@ -1088,8 +1087,4 @@ Clean, simple, {python}ic. That's the goal. 🎯
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-**Key Points:**
-1. **mcp2py is the client** - it speaks JSON-RPC to the server
-2. **Server is a separate process** - started via `command` parameter
-3. **Low-level and generic** - works with any AI SDK or standalone
-4. **Bidirectional** - client calls server tools, server can request client capabilities
+**Key Points:** 1. **mcp2py is the client** - it speaks JSON-RPC to the server 2. **Server is a separate process** - started via `command` parameter 3. **Low-level and generic** - works with any AI SDK or standalone 4. **Bidirectional** - client calls server tools, server can request client capabilities
