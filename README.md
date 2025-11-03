@@ -113,14 +113,7 @@ notion = load("https://mcp.notion.com/mcp", auth="oauth")
 # Browser opens automatically for OAuth login
 # Once authenticated, you can use the tools
 
-# Search Notion workspace (note: notion-search becomes notion_search)
-results = notion.notion_search(query="project", search_type="internal")
-
-# Get current bot user info
-user = notion.notion_get_self()
-
-# Fetch a page by URL
-page = notion.notion_fetch(url="https://www.notion.so/...")
+notion.notion_get_self()
 ```
 
 **3. That’s it!**
@@ -1198,3 +1191,211 @@ server 2. **Server is a separate process** - started via `command`
 parameter 3. **Low-level and generic** - works with any AI SDK or
 standalone 4. **Bidirectional** - client calls server tools, server can
 request client capabilities
+
+------------------------------------------------------------------------
+
+## Advanced Tutorial: Composing MCP Servers with DSPy
+
+This tutorial demonstrates the full power of mcp2py by showing how
+to: 1. Use Notion MCP in a DSPy agent 2. Wrap that agent as its own MCP
+server 3. Use that server in another DSPy program
+
+This showcases true **composability** - building complex AI systems by
+chaining MCP servers together.
+
+### Step 1: DSPy Agent with Notion MCP
+
+First, let’s create a DSPy agent that can search and organize
+information in Notion:
+
+``` python
+import dspy
+from mcp2py import load
+
+# Configure DSPy with your LLM
+dspy.configure(lm=dspy.LM("openai/gpt-4.1"))
+
+# Load Notion MCP server
+notion = load("https://mcp.notion.com/mcp", auth="oauth")
+
+# Define a DSPy signature for a research assistant
+class NotionResearcher(dspy.Signature):
+    """Research assistant that searches Notion workspace and summarizes findings."""
+    query: str = dspy.InputField(desc="Research query or topic")
+    summary: str = dspy.OutputField(desc="Summary of findings from Notion")
+
+# Create DSPy agent with Notion tools
+researcher = dspy.ReAct(NotionResearcher, tools=notion.tools)
+
+# Test the agent
+result = researcher(query="What are our Q1 2025 goals?")
+print(result.summary)
+```
+
+    [11/03/25 07:20:44] INFO     OAuth authorization URL:  oauth.py:340
+    https://mcp.notion.com/authorizresponse_typ...                                                                              
+        INFO     🎧 OAuth callback server started on http://localhost:40621                   oauth.py:358
+
+    AI response > No information was found regarding our Q1 2025 goals due to repeated execution errors when attempting to search or create documentation in Notion. All attempts to gather relevant data or create a new page were unsuccessful.
+
+### Step 2: Wrap the Agent as an MCP Server
+
+Now let’s turn this Notion-powered agent into its own MCP server using
+FastMCP:
+
+``` python
+# notion_research_server.py
+from fastmcp import FastMCP
+from mcp2py import load
+import dspy
+
+# Initialize FastMCP
+mcp = FastMCP("Notion Research Server")
+
+# Load Notion and configure DSPy
+notion = load("https://mcp.notion.com/mcp", auth="oauth")
+dspy.configure(lm=dspy.LM("openai/gpt-4.1"))
+
+class NotionResearcher(dspy.Signature):
+    """Research assistant that searches Notion workspace."""
+    query: str = dspy.InputField(desc="Research query")
+    summary: str = dspy.OutputField(desc="Summary of findings")
+
+researcher = dspy.ReAct(NotionResearcher, tools=notion.tools)
+
+@mcp.tool()
+def research_notion(query: str) -> str:
+    """Research a topic by searching the Notion workspace.
+
+    Args:
+        query: The research question or topic to investigate
+
+    Returns:
+        A comprehensive summary of findings from Notion
+    """
+    result = researcher(query=query)
+    return result.summary
+
+@mcp.tool()
+def get_notion_pages(search_term: str, limit: int = 5) -> dict:
+    """Get a list of Notion pages matching a search term.
+
+    Args:
+        search_term: Term to search for
+        limit: Maximum number of results (default: 5)
+
+    Returns:
+        Dictionary with search results
+    """
+    results = notion.notion_search(
+        query=search_term,
+        search_type="internal",
+        limit=limit
+    )
+    return {"results": results, "count": limit}
+
+# Run the server
+if __name__ == "__main__":
+    mcp.run()
+```
+
+Save this as `notion_research_server.py` and you now have a custom MCP
+server!
+
+### Step 3: Use the Custom Server in Another DSPy Program
+
+Finally, let’s use our custom Notion Research Server in a higher-level
+DSPy agent:
+
+``` python
+import dspy
+from mcp2py import load
+
+# Configure DSPy
+dspy.configure(lm=dspy.LM("openai/gpt-4.1"))
+
+# Load our custom Notion Research Server
+research_server = load("uv run notion_research_server.py")
+
+# Create a high-level report writer
+class ReportWriter(dspy.Signature):
+    """Executive assistant that creates comprehensive reports."""
+    topic: str = dspy.InputField(desc="Report topic")
+    sections: str = dspy.InputField(desc="Comma-separated section topics")
+    report: str = dspy.OutputField(desc="Comprehensive markdown report")
+
+# Create agent with our research server tools
+report_writer = dspy.ReAct(ReportWriter, tools=research_server.tools)
+
+# Generate a comprehensive report
+result = report_writer(
+    topic="Company Strategy Review",
+    sections="Q1 Goals, Recent Achievements, Upcoming Initiatives, Team Updates"
+)
+
+print("="*60)
+print(result.report)
+print("="*60)
+```
+
+    ============================================================
+    # Company Strategy Review
+
+    ## Q1 Goals
+    *Unable to retrieve specific information due to access issues.*
+
+    ## Recent Achievements
+    *Unable to retrieve specific information due to access issues.*
+
+    ## Upcoming Initiatives
+    *Unable to retrieve specific information due to access issues.*
+
+    ## Team Updates
+    *Unable to retrieve specific information due to access issues.*
+
+    ---
+
+    *Note: This report could not be completed with current data access. Please provide the necessary information or resolve access issues to enable a comprehensive review.*
+    ============================================================
+
+### What Just Happened?
+
+This example demonstrates **three levels of composition**:
+
+1.  **Level 1**: Notion MCP provides raw tools (search, fetch, create)
+2.  **Level 2**: DSPy agent + Notion MCP = Research Assistant (wrapped
+    as MCP server)
+3.  **Level 3**: Another DSPy agent uses the Research Assistant to
+    create comprehensive reports
+
+### Key Benefits
+
+- **Modularity**: Each layer is independent and reusable
+- **Abstraction**: Higher levels don’t need to know about Notion’s API
+- **Composability**: Mix and match different MCP servers and agents
+- **Type Safety**: Full type hints and IDE support throughout the chain
+- **Testability**: Each layer can be tested independently
+
+### Real-World Applications
+
+This pattern enables powerful workflows:
+
+- **Multi-Source Research**: Combine Notion, GitHub, Slack, and other
+  MCP servers
+- **Specialized Agents**: Create domain-specific assistants (HR,
+  Engineering, Sales)
+- **Agent Chains**: Build complex pipelines where agents call other
+  agents
+- **API Abstraction**: Hide complexity behind simple, high-level tools
+
+### Next Steps
+
+Try creating your own composed systems:
+
+1.  Add more MCP servers (GitHub, Slack, Google Drive)
+2.  Create specialized agents for different domains
+3.  Build agent hierarchies with supervisors and workers
+4.  Deploy as microservices for production use
+
+The possibilities are endless when you can turn any MCP server into
+Python, and any Python code into an MCP server!
