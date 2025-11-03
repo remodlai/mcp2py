@@ -74,8 +74,32 @@ to an LLM.
 
 **1. Install**
 
+You can install mcp2py via pip:
+
 ``` bash
 pip install mcp2py
+```
+
+Python has had the pesky problem of not having a standard way to manage
+dependencies for a long time. To avoid dependency conflicts, it is
+recommended to use virtual environments. My favorite way to do this is
+with `uv` (see here:
+https://docs.astral.sh/uv/getting-started/installation/). Then you can
+create a new environment and install mcp2py like this:
+
+``` bash
+# Install uv (if you haven't already)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Create a new project with a virtual environment
+uv init my-mcp-project
+cd my-mcp-project
+
+# Install mcp2py
+uv add mcp2py
+
+# Activate the environment and start coding
+uv run python
 ```
 
 **2. Use it**
@@ -94,8 +118,8 @@ content
 
 **3. That’s it!**
 
-The server runs as a subprocess, tools are {python} methods, everything
-just works. d
+The server runs as a subprocess, tools are Python methods, everything
+just works.
 
 ## What is MCP?
 

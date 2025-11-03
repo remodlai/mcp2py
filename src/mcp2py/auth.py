@@ -22,7 +22,7 @@ BearerAuth = FastMCPBearerAuth
 # in ~/.fastmcp/oauth-mcp-client-cache/
 
 
-class OAuth:
+class OAuth(httpx.Auth):
     """OAuth 2.1 authentication handler with PKCE support.
 
     Wraps FastMCP's OAuth implementation for easier use with mcp2py.
@@ -60,8 +60,9 @@ class OAuth:
         """HTTPX auth flow - delegates to FastMCP OAuth."""
         return self._oauth.auth_flow(request)
 
-    async def async_auth_flow(self, request: httpx.Request):
+    def async_auth_flow(self, request: httpx.Request):
         """Async HTTPX auth flow - delegates to FastMCP OAuth."""
+        # Return the async generator directly (don't await it)
         return self._oauth.async_auth_flow(request)
 
 

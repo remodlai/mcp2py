@@ -10,7 +10,7 @@ import inspect
 from pathlib import Path
 from typing import Any, TYPE_CHECKING
 
-from mcp2py.schema import camel_to_snake, json_schema_to_python_type
+from mcp2py.schema import normalize_name, json_schema_to_python_type
 
 
 def create_typed_server_class(
@@ -43,7 +43,7 @@ def create_typed_server_class(
     # Add tool method stubs
     for tool in tools:
         tool_name = tool["name"]
-        snake_name = camel_to_snake(tool_name)
+        snake_name = normalize_name(tool_name)
         input_schema = tool.get("inputSchema", {})
         description = tool.get("description", "")
 
@@ -54,7 +54,7 @@ def create_typed_server_class(
     # Add resource property stubs
     for resource in resources:
         resource_name = resource["name"]
-        snake_name = camel_to_snake(resource_name)
+        snake_name = normalize_name(resource_name)
         description = resource.get("description", "")
 
         # Create property that delegates to __getattr__
@@ -72,7 +72,7 @@ def create_typed_server_class(
     # Add prompt method stubs
     for prompt in prompts:
         prompt_name = prompt["name"]
-        snake_name = camel_to_snake(prompt_name)
+        snake_name = normalize_name(prompt_name)
         description = prompt.get("description", "")
         arguments = prompt.get("arguments", [])
 
@@ -242,7 +242,7 @@ def generate_stub(
         lines.append("    # Tools")
         for tool in tools:
             tool_name = tool["name"]
-            snake_name = camel_to_snake(tool_name)
+            snake_name = normalize_name(tool_name)
             description = tool.get("description", "")
             input_schema = tool.get("inputSchema", {})
 
@@ -283,7 +283,7 @@ def generate_stub(
         lines.append("    # Resources")
         for resource in resources:
             resource_name = resource["name"]
-            snake_name = camel_to_snake(resource_name)
+            snake_name = normalize_name(resource_name)
             description = resource.get("description", "")
 
             if description:
@@ -302,7 +302,7 @@ def generate_stub(
         lines.append("    # Prompts")
         for prompt in prompts:
             prompt_name = prompt["name"]
-            snake_name = camel_to_snake(prompt_name)
+            snake_name = normalize_name(prompt_name)
             description = prompt.get("description", "")
             arguments = prompt.get("arguments", [])
 

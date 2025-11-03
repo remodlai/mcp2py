@@ -1,6 +1,7 @@
-"""HTTP/SSE MCP client wrapper.
+"""HTTP/StreamableHTTP MCP client wrapper.
 
-This module provides HTTP and SSE transport support for remote MCP servers.
+This module provides HTTP StreamableHTTP transport support for remote MCP servers.
+StreamableHTTP is the modern MCP transport (as of 2025-03-26) that replaced HTTP+SSE.
 """
 
 import asyncio
@@ -8,17 +9,17 @@ from typing import Any
 
 import httpx
 from mcp import ClientSession
-from mcp.client.sse import sse_client
+from mcp.client.streamable_http import streamablehttp_client
 
 
 class HTTPMCPClient:
-    """Wrapper around official MCP SDK's SSE client for HTTP transport.
+    """Wrapper around official MCP SDK's StreamableHTTP client for HTTP transport.
 
-    Provides HTTP/SSE transport for connecting to remote MCP servers with
-    authentication support.
+    Provides HTTP StreamableHTTP transport for connecting to remote MCP servers with
+    authentication support. Uses the modern StreamableHTTP transport (2025-03-26 spec).
 
     Example:
-        >>> client = HTTPMCPClient("https://api.example.com/mcp/sse")
+        >>> client = HTTPMCPClient("https://api.example.com/mcp")
         >>> await client.connect()
         >>> await client.initialize({"name": "mcp2py", "version": "0.1.0"})
         >>> tools = await client.list_tools()
@@ -72,7 +73,7 @@ class HTTPMCPClient:
         self._connection_error: Exception | None = None
 
     async def connect(self) -> None:
-        """Connect to MCP server via SSE transport.
+        """Connect to MCP server via StreamableHTTP transport.
 
         Creates a ClientSession that will be used for all subsequent operations.
 
@@ -113,18 +114,18 @@ class HTTPMCPClient:
             raise RuntimeError("Failed to establish session - unknown error")
 
     async def _run_contexts(self) -> None:
-        """Run the SSE client context as a long-lived task.
+        """Run the StreamableHTTP client context as a long-lived task.
 
         This keeps the HTTP connection alive throughout the session.
         """
         try:
-            async with sse_client(
+            async with streamablehttp_client(
                 self.url,
                 headers=self.headers,
                 timeout=self.timeout,
                 sse_read_timeout=self.sse_read_timeout,
                 auth=self.auth,
-            ) as (read, write):
+            ) as (read, write, get_session_id):
                 async with ClientSession(
                     read,
                     write,

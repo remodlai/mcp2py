@@ -13,7 +13,7 @@ from typing import Any
 from mcp2py.client import MCPClient
 from mcp2py.event_loop import AsyncRunner
 from mcp2py.exceptions import MCPResourceError, MCPPromptError
-from mcp2py.schema import camel_to_snake, create_function_with_signature
+from mcp2py.schema import normalize_name, create_function_with_signature
 
 
 class MCPServer:
@@ -65,17 +65,17 @@ class MCPServer:
         self._prompt_name_map: dict[str, str] = {}
 
         for original_name in self._tools.keys():
-            snake_name = camel_to_snake(original_name)
+            snake_name = normalize_name(original_name)
             if snake_name != original_name:
                 self._name_map[snake_name] = original_name
 
         for original_name in self._resources.keys():
-            snake_name = camel_to_snake(original_name)
+            snake_name = normalize_name(original_name)
             if snake_name != original_name:
                 self._resource_name_map[snake_name] = original_name
 
         for original_name in self._prompts.keys():
-            snake_name = camel_to_snake(original_name)
+            snake_name = normalize_name(original_name)
             if snake_name != original_name:
                 self._prompt_name_map[snake_name] = original_name
 

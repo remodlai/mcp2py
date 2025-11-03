@@ -31,8 +31,47 @@ def parse_command(command: str | list[str]) -> list[str]:
     return command.split()
 
 
+def normalize_name(name: str) -> str:
+    """Normalize tool/resource/prompt names to Python-friendly snake_case.
+
+    Handles:
+    - kebab-case (notion-search -> notion_search)
+    - camelCase (getWeather -> get_weather)
+    - PascalCase (HTTPRequest -> http_request)
+
+    Args:
+        name: Name in any format
+
+    Returns:
+        Name in snake_case
+
+    Example:
+        >>> normalize_name("notion-search")
+        'notion_search'
+        >>> normalize_name("getWeather")
+        'get_weather'
+        >>> normalize_name("fetchData")
+        'fetch_data'
+        >>> normalize_name("HTTPRequest")
+        'http_request'
+        >>> normalize_name("simple")
+        'simple'
+    """
+    # First, replace hyphens with underscores (kebab-case -> snake_case)
+    name = name.replace("-", "_")
+
+    # Then handle camelCase/PascalCase
+    # Insert underscore before uppercase letters that follow lowercase
+    s1 = re.sub("(.)([A-Z][a-z]+)", r"\1_\2", name)
+    # Insert underscore before uppercase letters that follow lowercase or digit
+    s2 = re.sub("([a-z0-9])([A-Z])", r"\1_\2", s1)
+    return s2.lower()
+
+
 def camel_to_snake(name: str) -> str:
     """Convert camelCase or PascalCase to snake_case.
+
+    DEPRECATED: Use normalize_name() instead for better handling of all formats.
 
     Args:
         name: Name in camelCase or PascalCase
