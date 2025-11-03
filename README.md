@@ -107,13 +107,20 @@ uv run python
 ``` python
 from mcp2py import load
 
-# Load any MCP server
-server = load("npx -y @modelcontextprotocol/server-filesystem .")
+# Load any MCP server with OAuth authentication
+notion = load("https://mcp.notion.com/mcp", auth="oauth")
 
-# Tools become {python} methods
-files = server.list_directory(path="/tmp")
-content = server.read_file(path="/tmp/test.txt")
-content
+# Browser opens automatically for OAuth login
+# Once authenticated, you can use the tools
+
+# Search Notion workspace (note: notion-search becomes notion_search)
+results = notion.notion_search(query="project", search_type="internal")
+
+# Get current bot user info
+user = notion.notion_get_self()
+
+# Fetch a page by URL
+page = notion.notion_fetch(url="https://www.notion.so/...")
 ```
 
 **3. That’s it!**
