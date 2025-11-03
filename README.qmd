@@ -1131,10 +1131,11 @@ dspy.configure(lm=dspy.LM("openai/gpt-4.1"))
 notion = load("https://mcp.notion.com/mcp", auth="oauth")
 
 # Define a DSPy signature for a research assistant
+
 class NotionResearcher(dspy.Signature):
-    """Research assistant that searches Notion workspace and summarizes findings."""
-    query: str = dspy.InputField(desc="Research query or topic")
-    summary: str = dspy.OutputField(desc="Summary of findings from Notion")
+    """Research assistant that searches Notion workspace."""
+    query: str = dspy.InputField(desc="Research query")
+    summary: str = dspy.OutputField(desc="Summary of findings")
 
 # Create DSPy agent with Notion tools
 researcher = dspy.ReAct(NotionResearcher, tools=notion.tools)
@@ -1188,24 +1189,6 @@ def research_notion(query: str) -> str:
     """
     result = researcher(query=query)
     return result.summary
-
-@mcp.tool()
-def get_notion_pages(search_term: str, limit: int = 5) -> dict:
-    """Get a list of Notion pages matching a search term.
-
-    Args:
-        search_term: Term to search for
-        limit: Maximum number of results (default: 5)
-
-    Returns:
-        Dictionary with search results
-    """
-    results = notion.notion_search(
-        query=search_term,
-        search_type="internal",
-        limit=limit
-    )
-    return {"results": results, "count": limit}
 
 # Run the server
 if __name__ == "__main__":
