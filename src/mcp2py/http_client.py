@@ -55,7 +55,19 @@ class HTTPMCPClient:
             ... )
         """
         self.url = url
-        self.headers = headers or {}
+        # Ensure the StreamableHTTP handshake advertises SSE support. Next.js 16+ rejects
+        # discovery requests that omit 'text/event-stream' in the Accept header, so always
+        # add it when the caller hasn't specified an explicit Accept value.
+        merged_headers = dict(headers or {})
+        accept_header = merged_headers.get("Accept")
+        required_accept = "text/event-stream"
+        if accept_header:
+            if required_accept not in accept_header:
+                merged_headers["Accept"] = f"{accept_header}, {required_accept}"
+        else:
+            merged_headers["Accept"] = "text/event-stream, application/json"
+
+        self.headers = merged_headers
         self.auth = auth
         self.timeout = timeout
         self.sse_read_timeout = sse_read_timeout
