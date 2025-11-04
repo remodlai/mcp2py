@@ -83,6 +83,12 @@ class DefaultSamplingHandler:
             >>> isinstance(result, str)
             True
         """
+        # Ensure we actually have credentials before attempting a provider call.
+        if self.model is None and not self.can_handle():
+            raise MCPSamplingError(
+                "No API keys found. Set ANTHROPIC_API_KEY, OPENAI_API_KEY, or GOOGLE_API_KEY"
+            )
+
         try:
             import litellm
         except ImportError:
